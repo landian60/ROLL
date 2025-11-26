@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Proxy - 个性化代理系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="user-bar">
+            <span>当前账号：{{ current_user }}</span>
+            <a href="{{ url_for('logout') }}">退出登录</a>
+        </div>
+        <header>
+            <h1>Personal Proxy - 个性化代理系统</h1>
+            <p class="subtitle">基于意图理解和个人记忆的个性化知识搜索助手</p>
+        </header>
+
+        <div class="main-content">
+            <!-- 左侧：个人属性和偏好 -->
+            <div class="left-panel">
+                <!-- 个人事实 -->
+                <section class="card">
+                    <div class="card-header">
+                        <h2>个人事实（长期）</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>年龄：</label>
+                            <input type="text" id="age" placeholder="例如：26-30">
+                        </div>
+                        <div class="form-group">
+                            <label>性别：</label>
+                            <select id="gender">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>就业状态：</label>
+                            <select id="employment_status">
+                                <option value="">请选择</option>
+                                <option value="在校学生">在校学生</option>
+                                <option value="在职">在职</option>
+                                <option value="待业">待业</option>
+                                <option value="自由职业">自由职业</option>
+                                <option value="退休">退休</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>教育水平：</label>
+                            <select id="education_level">
+                                <option value="">请选择</option>
+                                <option value="高中">高中</option>
+                                <option value="大专">大专</option>
+                                <option value="本科">本科</option>
+                                <option value="硕士">硕士</option>
+                                <option value="博士">博士</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>居住区域：</label>
+                            <input type="text" id="residence_area" placeholder="例如：北京">
+                        </div>
+                        <button class="btn btn-primary" onclick="savePersonalFacts()">保存个人事实</button>
+                    </div>
+                </section>
+
+                <!-- 个人偏好 -->
+                <section class="card">
+                    <div class="card-header">
+                        <h2>个人偏好（短期）</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- 文件上传区域 -->
+                        <div class="form-group">
+                            <label>上传个人信息文件（自动解析偏好）：</label>
+                            <p style="font-size: 12px; color: #666; margin: 5px 0;">
+                                支持格式：文本(.txt, .md)、图片(.jpg, .png, .gif等)、视频(.mp4, .avi, .mov等)、PDF(.pdf)
+                            </p>
+                            <input type="file" id="preference_file" accept=".txt,.md,.jpg,.jpeg,.png,.gif,.bmp,.webp,.mp4,.avi,.mov,.wmv,.flv,.mkv,.webm,.pdf" style="display: block; margin: 10px 0;">
+                            <button class="btn btn-secondary" onclick="uploadPreferenceFile()">解析文件</button>
+                        </div>
+                        
+                        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                        
+                        <!-- 自定义偏好输入 -->
+                        <div class="form-group">
+                            <label>或手动添加个人偏好：</label>
+                            <input type="text" id="custom_preference_input" placeholder="例如：喜欢阅读长文本" style="width: 100%; margin: 5px 0;">
+                            <div style="display: flex; gap: 15px; margin: 10px 0; align-items: center;">
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="radio" name="custom_pref_type" value="like" id="custom_pref_like" checked style="margin-right: 5px;">
+                                    <span style="color: #4CAF50;">✓ 喜欢</span>
+                                </label>
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="radio" name="custom_pref_type" value="dislike" id="custom_pref_dislike" style="margin-right: 5px;">
+                                    <span style="color: #f44336;">✗ 不喜欢</span>
+                                </label>
+                            </div>
+                            <button class="btn btn-secondary" onclick="addCustomPreference()">添加偏好</button>
+                        </div>
+                        
+                        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                        
+                        <!-- 偏好列表 -->
+                        <div class="form-group">
+                            <label>当前个人偏好列表：</label>
+                            <div id="preferences_list" style="margin-top: 10px; max-height: 300px; overflow-y: auto;">
+                                <p style="color: #999; text-align: center;">暂无偏好，请添加或上传文件</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 中间：知识搜索场景 -->
+            <div class="center-panel">
+                <section class="card">
+                    <div class="card-header">
+                        <h2>知识搜索场景</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>输入搜索场景：</label>
+                            <input type="text" id="custom_scenario" placeholder="输入搜索场景，例如：介绍YOLO结构">
+                        </div>
+                        <button class="btn btn-primary btn-large" onclick="generateDescription()">
+                            生成个性化描述
+                        </button>
+                        
+                        <div id="description_result" class="result-box" style="display: none;">
+                            <h3>生成结果</h3>
+                            <div class="result-item">
+                                <strong>当前情景：</strong>
+                                <span id="result_context"></span>
+                            </div>
+                            <div class="result-item">
+                                <strong>用户意图：</strong>
+                                <span id="result_intent"></span>
+                            </div>
+                            <div class="result-item">
+                                <strong>意图解释：</strong>
+                                <span id="result_intent_explanation"></span>
+                            </div>
+                            <div class="result-item">
+                                <strong>个人记忆：</strong>
+                                <pre id="result_personal_memory"></pre>
+                            </div>
+                            <div class="result-item">
+                                <strong>个性化描述：</strong>
+                                <pre id="result_personal_description"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 右侧：意图判断历史 -->
+            <div class="right-panel">
+                <section class="card">
+                    <div class="card-header">
+                        <h2>意图判断历史</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="intent_history_list"></div>
+                        <button class="btn btn-primary" onclick="showAddIntentForm()">添加新意图</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑意图模态框 -->
+    <div id="intent_modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal_title">添加意图判断</h2>
+                <span class="close" onclick="closeIntentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>当前情景：</label>
+                    <input type="text" id="modal_context" placeholder="例如：介绍YOLO结构">
+                </div>
+                <div class="form-group">
+                    <label>意图类别：</label>
+                    <select id="modal_intent_select">
+                        <option value="">请选择意图类别</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>意图解释：</label>
+                    <textarea id="modal_intent_explanation" rows="3" placeholder="详细说明为什么会有这个意图"></textarea>
+                </div>
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                <div class="form-group">
+                    <label>新增意图类别（可选）：</label>
+                    <input type="text" id="new_intent_name" placeholder="新的意图名称，如：定义-论证式-进阶版本">
+                </div>
+                <div class="form-group">
+                    <label>新增意图类别通用解释：</label>
+                    <textarea id="new_intent_generic_explanation" rows="3" placeholder="为新的意图类别补充通用解释"></textarea>
+                </div>
+                <div class="form-group" style="text-align: right;">
+                    <button class="btn btn-secondary" type="button" onclick="addNewIntentCategory()">添加为新的意图类别</button>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="saveIntent()">保存</button>
+                    <button class="btn btn-secondary" onclick="closeIntentModal()">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 偏好选择模态框 -->
+    <div id="preference_modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>选择要添加的个人偏好</h2>
+                <span class="close" onclick="closePreferenceModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color: #666; margin-bottom: 15px;">以下是从文件中解析出的个人偏好，请选择需要添加的项，并选择是"喜欢"还是"不喜欢"：</p>
+                <div id="parsed_preferences_list" style="max-height: 400px; overflow-y: auto;">
+                </div>
+                <div class="modal-footer" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="addSelectedPreferences()">添加选中的偏好</button>
+                    <button class="btn btn-secondary" onclick="closePreferenceModal()">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 意图保存确认模态框 -->
+    <div id="save_intent_modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>保存意图判断记录</h2>
+                <span class="close" onclick="closeSaveIntentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color: #666; margin-bottom: 15px;">生成完成！您可以修改以下内容后保存到意图判断历史中：</p>
+                <div class="form-group">
+                    <label>当前情景：</label>
+                    <textarea id="save_intent_context" rows="3" placeholder="描述当前情景"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>意图类别：</label>
+                    <select id="save_intent_category">
+                        <option value="">请选择意图类别</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>意图解释：</label>
+                    <textarea id="save_intent_explanation" rows="4" placeholder="详细说明意图"></textarea>
+                </div>
+                <div class="modal-footer" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="confirmSaveIntent()">保存</button>
+                    <button class="btn btn-secondary" onclick="closeSaveIntentModal()">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件类别选择模态框 -->
+    <div id="file_category_modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>请选择文件内容类别</h2>
+                <span class="close" onclick="closeFileCategoryModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="color: #666; margin-bottom: 15px;">请选择上传文件的内容来源类别，以辅助偏好解析：</p>
+                <div class="form-group">
+                    <div class="radio-list" style="max-height: 400px; overflow-y: auto;">
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="个人原创内容" checked> 
+                            <strong>个人原创内容</strong> <span style="color: #666; font-size: 12px;">（本人自行撰写、创作或编写）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="已阅读内容"> 
+                            <strong>已阅读内容</strong> <span style="color: #666; font-size: 12px;">（本人曾经阅读、浏览或学习过）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="个人整理内容"> 
+                            <strong>个人整理内容</strong> <span style="color: #666; font-size: 12px;">（由本人收集、归纳、总结或编辑）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="他人创作内容"> 
+                            <strong>他人创作内容</strong> <span style="color: #666; font-size: 12px;">（由他人撰写、制作或提供）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="互联网获取内容"> 
+                            <strong>互联网获取内容</strong> <span style="color: #666; font-size: 12px;">（从网络公开资源中获取）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="组织内部材料"> 
+                            <strong>组织内部材料</strong> <span style="color: #666; font-size: 12px;">（所属机构或团队的内部文件、文档或资料）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="人工智能生成内容"> 
+                            <strong>人工智能生成内容</strong> <span style="color: #666; font-size: 12px;">（由 AI 工具自动生成）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="系统自动导出内容"> 
+                            <strong>系统自动导出内容</strong> <span style="color: #666; font-size: 12px;">（由软件、程序或平台生成并导出的文件或数据）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="模板衍生内容"> 
+                            <strong>模板衍生内容</strong> <span style="color: #666; font-size: 12px;">（基于现有模板修改、扩展或填充而成）</span>
+                        </label>
+                        <label style="display: block; margin: 8px 0; cursor: pointer;">
+                            <input type="radio" name="file_category" value="其他来源"> 
+                            <strong>其他来源</strong> <span style="color: #666; font-size: 12px;">（请进一步说明具体来源）</span>
+                        </label>
+                    </div>
+                    <div id="other_source_input" style="display: none; margin-top: 10px;">
+                         <input type="text" id="other_source_detail" placeholder="请输入具体来源说明" style="width: 100%;">
+                    </div>
+                </div>
+                <div class="modal-footer" style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="confirmUploadWithCategory()">确认解析</button>
+                    <button class="btn btn-secondary" onclick="closeFileCategoryModal()">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

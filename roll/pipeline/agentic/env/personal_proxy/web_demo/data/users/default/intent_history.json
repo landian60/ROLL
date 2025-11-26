@@ -1,0 +1,32 @@
+[
+  {
+    "id": "intent_1_20250101000000",
+    "context": "介绍YOLO结构",
+    "user": "当前用户",
+    "intent": "梳理YOLO网络的核心组件和数据流",
+    "intent_explanation": "用户需要系统性地介绍YOLO的主干、特征金字塔和检测头",
+    "user_feedback": "",
+    "created_at": "2025-01-01T00:00:00",
+    "updated_at": "2025-01-01T00:00:00"
+  },
+  {
+    "id": "intent_2_20250101000000",
+    "context": "介绍伊斯坦布尔历史",
+    "user": "当前用户",
+    "intent": "概述伊斯坦布尔在不同时期的历史演进",
+    "intent_explanation": "用户希望了解伊斯坦布尔从拜占庭到奥斯曼再到现代的变迁",
+    "user_feedback": "",
+    "created_at": "2025-01-01T00:00:00",
+    "updated_at": "2025-01-01T00:00:00"
+  },
+  {
+    "id": "intent_3_20250101000000",
+    "context": "介绍YOLO结构",
+    "user": "当前用户",
+    "intent": "总结不同代YOLO模型的改进重点",
+    "intent_explanation": "用户想比较不同版本YOLO的改进，以便评估适用场景",
+    "user_feedback": "",
+    "created_at": "2025-01-01T00:00:00",
+    "updated_at": "2025-01-01T00:00:00"
+  }
+]

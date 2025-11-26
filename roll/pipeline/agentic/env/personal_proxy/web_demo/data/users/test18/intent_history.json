@@ -1,0 +1,62 @@
+[
+  {
+    "id": "intent_20251118050810",
+    "context": "介绍resnet结构",
+    "user": "当前用户",
+    "intent": "定义-论证式",
+    "intent_explanation": "",
+    "user_feedback": "",
+    "created_at": "2025-11-18T05:08:10.393137",
+    "updated_at": "2025-11-18T05:08:10.393154"
+  },
+  {
+    "id": "intent_20251118050834",
+    "context": "介绍Transformer网络",
+    "user": "当前用户",
+    "intent": "定义-论证式",
+    "intent_explanation": "",
+    "user_feedback": "",
+    "created_at": "2025-11-18T05:08:34.117439",
+    "updated_at": "2025-11-18T05:08:34.117457"
+  },
+  {
+    "id": "intent_20251118050901",
+    "context": "介绍Diffusion运作原理",
+    "user": "当前用户",
+    "intent": "定义-论证式",
+    "intent_explanation": "",
+    "user_feedback": "",
+    "created_at": "2025-11-18T05:09:01.145957",
+    "updated_at": "2025-11-18T05:09:01.145974"
+  },
+  {
+    "id": "intent_20251118050917",
+    "context": "介绍统一模型unified model",
+    "user": "当前用户",
+    "intent": "定义-论证式",
+    "intent_explanation": "",
+    "user_feedback": "",
+    "created_at": "2025-11-18T05:09:17.914202",
+    "updated_at": "2025-11-18T05:09:17.914220"
+  },
+  {
+    "id": "intent_20251118050939",
+    "context": "介绍西欧历史",
+    "user": "当前用户",
+    "intent": "故事-叙事式",
+    "intent_explanation": "",
+    "user_feedback": "",
+    "created_at": "2025-11-18T05:09:39.163104",
+    "updated_at": "2025-11-18T05:09:39.163121"
+  },
+  {
+    "id": "intent_20251118051003",
+    "context": "介绍yolo历史",
+    "user": "当前用户",
+    "intent": "故事-叙事式",
+    "intent_explanation": "用户希望了解 YOLO（You Only Look Once）的发展历程，包括其关键版本迭代、核心贡献者以及技术演进的里程碑事件。参考历史记录中“介绍西欧历史”的叙事模式（相似度80.3%），用户倾向于通过时间线与关键突破的串联，形成对 YOLO 从诞生到优化的完整认知，而非仅关注技术结构或原理定义。这种故事化叙述能帮助读者直观理解其背景、动机与行业影响。",
+    "user_feedback": "",
+    "created_at": "2025-11-18T05:10:03.296962",
+    "updated_at": "2025-11-18T05:10:03.296982"
+  }
+]

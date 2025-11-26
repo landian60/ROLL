@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - Personal Proxy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .auth-wrapper {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .auth-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 2px solid #667eea;
+        }
+        .auth-card h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .auth-card p {
+            margin-bottom: 20px;
+            color: #666;
+        }
+        .auth-card form .btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .error-text {
+            color: #dc3545;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container auth-wrapper">
+        <header>
+            <h1>Personal Proxy</h1>
+            <p class="subtitle">注册一个新账号，开启个性化代理体验</p>
+        </header>
+
+        <div class="auth-card">
+            <h2>注册</h2>
+            <p>请填写以下信息，注册完成后系统会自动为您登录。</p>
+            {% if register_error %}
+                <div class="error-text">{{ register_error }}</div>
+            {% endif %}
+            <form method="post" action="{{ url_for('register') }}">
+                <div class="form-group">
+                    <label>账号</label>
+                    <input type="text" name="username" placeholder="3-32位字母/数字/下划线/短横线" value="{{ register_username or '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input class="password-input" type="password" name="password" placeholder="请输入密码" required>
+                </div>
+                <div class="form-group">
+                    <label>确认密码</label>
+                    <input class="password-input" type="password" name="confirm_password" placeholder="请再次输入密码" required>
+                </div>
+                <button class="btn btn-secondary" type="submit">注册并登录</button>
+            </form>
+            <a class="back-link" href="{{ url_for('login') }}">已有账号？返回登录</a>
+        </div>
+    </div>
+</body>
+</html>

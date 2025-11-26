@@ -1,0 +1,62 @@
+[
+  {
+    "id": "pref_20251116_tukainan_1",
+    "text": "喜欢大纲导览",
+    "selected": true,
+    "preference_type": "dislike"
+  },
+  {
+    "id": "pref_20251116214705874835",
+    "text": "喜欢通过实际案例来学习新知识",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251116214705880767",
+    "text": "倾向于先理解整体框架再深入细节",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251116214705886784",
+    "text": "喜欢参考多个来源的信息来验证知识点",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251116214705892934",
+    "text": "通常先浏览目录和摘要来判断内容相关性",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251116214705898763",
+    "text": "偏好结构化的内容，如使用标题、列表和代码块",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251116214705905064",
+    "text": "喜欢在阅读技术文档时看到实际的代码示例",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251116214705913781",
+    "text": "对深度学习和计算机视觉特别感兴趣",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251116214705918246",
+    "text": "使用Python作为主要编程语言",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251116214832246445",
+    "text": "喜欢阅读长文本",
+    "selected": true,
+    "preference_type": "like"
+  }
+]

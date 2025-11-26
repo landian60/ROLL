@@ -1,0 +1,26 @@
+[
+  {
+    "id": "pref_20251116_1",
+    "text": "喜欢阅读长文本",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251118024142373789",
+    "text": "偏好具有象征意义或隐喻性的视觉内容",
+    "selected": true,
+    "preference_type": "dislike"
+  },
+  {
+    "id": "pref_20251119123117780986",
+    "text": "喜欢阅读技术性较强的学术论文",
+    "selected": true,
+    "preference_type": "like"
+  },
+  {
+    "id": "pref_20251119123117890445",
+    "text": "关注人工智能与机器学习领域的前沿研究",
+    "selected": true,
+    "preference_type": "like"
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "users": {
+    "REXKEV214": {
+      "password_hash": "scrypt:32768:8:1$Alk1smItQyZ019xn$5ac0eb931dd20bfdd54f82f6f95641876033624280f62b97bf6fac64802daa079b4f7d83bd244de3326b834fd6c00b08732c58a6c197e2f76c48fe2530dbd097",
+      "created_at": "2025-11-10T21:48:44.878842"
+    },
+    "tukainan": {
+      "password_hash": "scrypt:32768:8:1$WJg2IJvl2LeewASE$62721c48209f435092d089cd5f4e2e98a8099b766ebf97a0613dfedcd36ccf2d7e242d92d61188f0f3ab2e1d2a0c135a51fb37c7ac870a6bafc1490a68505c37",
+      "created_at": "2025-11-10T22:42:21.082849"
+    },
+    "test": {
+      "password_hash": "scrypt:32768:8:1$Whqe5E9C1T8fq1kA$03340179f6245f496864cbca87aab60e3c817e82d0688566a7e8153313ac28be5606c0c2b14887a54ceede802a6035264f3773bc398ec789a7abb6a83a9214e5",
+      "created_at": "2025-11-11T05:56:05.122840"
+    },
+    "test1117": {
+      "password_hash": "scrypt:32768:8:1$aiLI3RYmetmRCxY3$61f81bee9e396fd2f30b51bac1d41fd7dae1c42c6ece21ee64c7bc9f4ed5c0d2cb8605a9177daddfcfb6dd563793cd336b39f1948faa6e6bb3eee5de8e50d362",
+      "created_at": "2025-11-17T10:40:27.929652"
+    },
+    "test18": {
+      "password_hash": "scrypt:32768:8:1$RLUifVWJZzeSp49t$55de7db77619fa72ed4a124657c4337fb395d4252409a4d851ff1752c49e72027b34ce420f0aaeac210c2d3d7280c2d493486128b7c4fb77adfeea58418659dd",
+      "created_at": "2025-11-18T04:47:31.620143"
+    }
+  }
+}
