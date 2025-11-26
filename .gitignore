@@ -174,3 +174,7 @@ log
 
 output/
 .vscode/.git_backup/
+pipeline/agentic/env/personal_proxy/web_demo/*
+flash_attn-2.8.3+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
+examples/qwen2.5-0.5B-agentic/log_1108/*
+examples/qwen2.5-0.5B-agentic_val/*

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个性化知识搜索 - Personal Proxy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .search-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-box {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+        }
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .result-section h3 {
+            margin-top: 0;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .thinking-box {
+            background: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .thinking-box h4 {
+            margin-top: 0;
+            color: #17a2b8;
+        }
+        .answer-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .info-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .info-item strong {
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/" class="back-link">← 返回个人资料管理</a>
+            <h1>个性化知识搜索</h1>
+            <p class="subtitle">基于意图理解和个人记忆的智能搜索助手</p>
+        </header>
+
+        <div class="search-container">
+            <!-- 搜索框 -->
+            <div class="search-box">
+                <div class="search-input-group">
+                    <input 
+                        type="text" 
+                        id="search_query" 
+                        class="search-input" 
+                        placeholder="输入您的搜索查询，例如：查询上海旅游规划、查找强化学习的代码库..."
+                        onkeypress="if(event.key === 'Enter') window.performSearch()"
+                    >
+                    <button class="search-btn" onclick="window.performSearch()" id="search_btn">
+                        搜索
+                    </button>
+                </div>
+                
+                <!-- 个人记忆配置 -->
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <h4 style="margin-top: 0; margin-bottom: 10px; color: #667eea;">个人记忆配置</h4>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 15px;">选择哪些个人记忆纳入到提示词中：</p>
+                    <div id="memory_config" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <!-- 动态加载 -->
+                    </div>
+                    <button class="btn btn-small" onclick="window.loadMemoryConfig()" style="margin-top: 10px;">刷新配置</button>
+                </div>
+            </div>
+
+            <!-- 结果显示区域 -->
+            <div id="results_container" style="display: none;">
+                <!-- 个性化信息 -->
+                <div class="result-section" id="personalization_section">
+                    <h3>个性化信息</h3>
+                    <div id="personalization_content"></div>
+                </div>
+
+                <!-- 思考过程 -->
+                <div class="result-section" id="thinking_section" style="display: none;">
+                    <h3>思考过程</h3>
+                    <div class="thinking-box" id="thinking_content"></div>
+                </div>
+
+                <!-- 最终回答 -->
+                <div class="result-section" id="answer_section" style="display: none;">
+                    <h3>回答</h3>
+                    <div class="answer-box" id="answer_content"></div>
+                </div>
+            </div>
+
+            <!-- 加载状态 -->
+            <div id="loading" class="result-section" style="display: none;">
+                <div class="loading">正在生成个性化描述和回答</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        const API_BASE = '';
+
+        // 加载个人记忆配置
+        window.loadMemoryConfig = async function() {
+            try {
+                console.log('开始加载个人记忆配置...');
+                const [factsRes, prefsRes] = await Promise.all([
+                    fetch(`${API_BASE}/api/personal-facts`),
+                    fetch(`${API_BASE}/api/personal-preferences`)
+                ]);
+                
+                const factsData = await factsRes.json();
+                const prefsData = await prefsRes.json();
+                
+                console.log('个人事实数据:', factsData);
+                console.log('个人偏好数据:', prefsData);
+                
+                const configContainer = document.getElementById('memory_config');
+                if (!configContainer) {
+                    console.error('找不到memory_config元素');
+                    return;
+                }
+                
+                let html = '';
+                
+                // 个人事实
+                if (factsData.success && factsData.data) {
+                    const facts = factsData.data;
+                    if (facts.age) html += `<label style="display: flex; align-items: center; cursor: pointer; gap: 5px;"><input type="checkbox" class="memory-checkbox" data-type="fact" data-key="age" checked> <span>年龄：${facts.age}</span></label>`;
+                    if (facts.gender) html += `<label style="display: flex; align-items: center; cursor: pointer; gap: 5px;"><input type="checkbox" class="memory-checkbox" data-type="fact" data-key="gender" checked> <span>性别：${facts.gender}</span></label>`;
+                    if (facts.employment_status) html += `<label style="display: flex; align-items: center; cursor: pointer; gap: 5px;"><input type="checkbox" class="memory-checkbox" data-type="fact" data-key="employment_status" checked> <span>就业状态：${facts.employment_status}</span></label>`;
+                    if (facts.education_level) html += `<label style="display: flex; align-items: center; cursor: pointer; gap: 5px;"><input type="checkbox" class="memory-checkbox" data-type="fact" data-key="education_level" checked> <span>教育水平：${facts.education_level}</span></label>`;
+                    if (facts.residence_area) html += `<label style="display: flex; align-items: center; cursor: pointer; gap: 5px;"><input type="checkbox" class="memory-checkbox" data-type="fact" data-key="residence_area" checked> <span>居住区域：${facts.residence_area}</span></label>`;
+                }
+                
+                // 个人偏好
+                if (prefsData.success && prefsData.data) {
+                    const prefs = prefsData.data;
+                    html += `<label style="display: flex; align-items: center; cursor: pointer; gap: 5px;"><input type="checkbox" class="memory-checkbox" data-type="preference" data-key="like_long_text" ${prefs.like_long_text ? 'checked' : ''}> <span>喜欢阅读长文本</span></label>`;
+                    html += `<label style="display: flex; align-items: center; cursor: pointer; gap: 5px;"><input type="checkbox" class="memory-checkbox" data-type="preference" data-key="like_outline_navigation" ${prefs.like_outline_navigation ? 'checked' : ''}> <span>喜欢大纲导览</span></label>`;
+                }
+                
+                if (html) {
+                    configContainer.innerHTML = html;
+                    console.log('个人记忆配置已加载，共', html.split('</label>').length - 1, '项');
+                } else {
+                    configContainer.innerHTML = '<p style="color: #999; grid-column: 1 / -1; text-align: center; padding: 10px;">暂无个人记忆配置，请先在个人资料管理页面配置</p>';
+                    console.log('没有个人记忆数据');
+                }
+            } catch (error) {
+                console.error('加载个人记忆配置失败:', error);
+                const configContainer = document.getElementById('memory_config');
+                if (configContainer) {
+                    configContainer.innerHTML = `<p style="color: #dc3545; grid-column: 1 / -1; text-align: center; padding: 10px;">加载失败: ${error.message}</p>`;
+                }
+            }
+        };
+
+        // 获取选中的个人记忆
+        window.getSelectedMemories = function() {
+            const checkboxes = document.querySelectorAll('.memory-checkbox:checked');
+            const selected = [];
+            checkboxes.forEach(cb => {
+                selected.push({
+                    type: cb.dataset.type,
+                    key: cb.dataset.key
+                });
+            });
+            return selected;
+        };
+
+        // 确保函数是全局的
+        window.performSearch = async function() {
+            const query = document.getElementById('search_query').value.trim();
+            
+            if (!query) {
+                alert('请输入搜索查询');
+                return;
+            }
+
+            // 禁用搜索按钮
+            const searchBtn = document.getElementById('search_btn');
+            if (!searchBtn) return;
+            searchBtn.disabled = true;
+            searchBtn.textContent = '搜索中...';
+
+            // 显示加载状态
+            const loadingEl = document.getElementById('loading');
+            if (loadingEl) loadingEl.style.display = 'block';
+            const resultsContainer = document.getElementById('results_container');
+            if (resultsContainer) resultsContainer.style.display = 'none';
+
+            // 检查是否有待使用的个性化描述
+            const requestBody = { query: query };
+            if (window.pendingPersonalDescription) {
+                requestBody.personal_description = window.pendingPersonalDescription.personal_description;
+                requestBody.intent = window.pendingPersonalDescription.intent;
+                requestBody.intent_explanation = window.pendingPersonalDescription.intent_explanation;
+                requestBody.personal_memory = window.pendingPersonalDescription.personal_memory;
+                // 使用后清除
+                window.pendingPersonalDescription = null;
+            }
+            
+            // 获取选中的个人记忆配置
+            const selectedMemories = window.getSelectedMemories();
+            if (selectedMemories.length > 0) {
+                requestBody.selected_memories = selectedMemories;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const data = result.data;
+                    // 如果生成了个性化描述但还没有回答，说明只完成了第一步，需要继续搜索
+                    if (data.personal_description && !data.answer) {
+                        // 自动使用个性化描述进行搜索
+                        window.performSearchWithDescription(
+                            data.query,
+                            data.personal_description,
+                            data.intent,
+                            data.intent_explanation,
+                            data.personal_memory
+                        );
+                    } else {
+                        // 显示完整结果（包括回答）
+                        displayResults(data);
+                    }
+                } else {
+                    alert('搜索失败: ' + result.message);
+                    const loadingEl = document.getElementById('loading');
+                    if (loadingEl) loadingEl.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('搜索失败:', error);
+                alert('搜索失败: ' + error.message);
+                const loadingEl = document.getElementById('loading');
+                if (loadingEl) loadingEl.style.display = 'none';
+            } finally {
+                // 恢复搜索按钮
+                if (searchBtn) {
+                    searchBtn.disabled = false;
+                    searchBtn.textContent = '搜索';
+                }
+            }
+        };
+
+        // 页面加载时检查是否有待使用的个性化描述
+        document.addEventListener('DOMContentLoaded', function() {
+            window.loadMemoryConfig();
+            
+            const pendingSearch = sessionStorage.getItem('pendingSearch');
+            if (pendingSearch) {
+                try {
+                    const data = JSON.parse(pendingSearch);
+                    // 填入搜索框
+                    const searchInput = document.getElementById('search_query');
+                    if (searchInput) {
+                        searchInput.value = data.query || '';
+                    }
+                    // 保存到全局变量
+                    window.pendingPersonalDescription = {
+                        personal_description: data.personal_description,
+                        intent: data.intent,
+                        intent_explanation: data.intent_explanation,
+                        personal_memory: data.personal_memory
+                    };
+                    // 清除sessionStorage
+                    sessionStorage.removeItem('pendingSearch');
+                    // 提示用户
+                    setTimeout(() => {
+                        if (confirm('检测到个性化描述，是否立即使用它进行搜索？')) {
+                            window.performSearch();
+                        }
+                    }, 500);
+                } catch (e) {
+                    console.error('解析待搜索数据失败:', e);
+                }
+            }
+        });
+
+        function displayResults(data) {
+            // 隐藏加载状态
+            const loadingEl = document.getElementById('loading');
+            if (loadingEl) loadingEl.style.display = 'none';
+            
+            // 显示结果容器
+            const resultsContainer = document.getElementById('results_container');
+            if (!resultsContainer) return;
+            resultsContainer.style.display = 'block';
+
+            // 显示个性化信息
+            const personalizationContent = document.getElementById('personalization_content');
+            if (personalizationContent) {
+                personalizationContent.innerHTML = `
+                    <div class="info-item">
+                        <strong>用户意图：</strong>
+                        ${data.intent || '未识别'}
+                    </div>
+                    <div class="info-item">
+                        <strong>意图解释：</strong>
+                        ${data.intent_explanation || '无'}
+                    </div>
+                    <div class="info-item">
+                        <strong>个人记忆：</strong>
+                        <pre style="margin: 10px 0; white-space: pre-wrap;">${data.personal_memory || '无'}</pre>
+                    </div>
+                    <div class="info-item">
+                        <strong>个性化描述：</strong>
+                        <pre style="margin: 10px 0; white-space: pre-wrap;">${data.personal_description || '无'}</pre>
+                    </div>
+                    ${data.personal_description ? `
+                    <div class="info-item" style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="search-btn" onclick="window.searchWithDescription('${(data.query || '').replace(/'/g, "\\'")}', ${JSON.stringify(data.personal_description || '')}, ${JSON.stringify(data.intent || '')}, ${JSON.stringify(data.intent_explanation || '')}, ${JSON.stringify(data.personal_memory || '')})">
+                            使用此个性化描述进行搜索
+                        </button>
+                        <button class="search-btn" style="background: #28a745;" onclick="window.editQueryAndSearch('${(data.query || '').replace(/'/g, "\\'")}', ${JSON.stringify(data.personal_description || '')}, ${JSON.stringify(data.intent || '')}, ${JSON.stringify(data.intent_explanation || '')}, ${JSON.stringify(data.personal_memory || '')})">
+                            编辑查询后搜索
+                        </button>
+                    </div>
+                    ` : ''}
+                `;
+            }
+
+            // 显示思考过程（包括多轮thinking）
+            const thinkingSection = document.getElementById('thinking_section');
+            const thinkingContent = document.getElementById('thinking_content');
+            if (thinkingSection && thinkingContent) {
+                let thinkingHTML = '';
+                
+                if (data.round1_thinking) {
+                    thinkingHTML += `
+                        <div class="thinking-box">
+                            <h4>第一轮推理：意图类别推理和历史检索</h4>
+                            <pre style="white-space: pre-wrap; word-wrap: break-word; margin: 0;">${data.round1_thinking}</pre>
+                        </div>
+                    `;
+                }
+                
+                if (data.round2_thinking) {
+                    thinkingHTML += `
+                        <div class="thinking-box">
+                            <h4>第二轮推理：意图类别判断和解释</h4>
+                            <pre style="white-space: pre-wrap; word-wrap: break-word; margin: 0;">${data.round2_thinking}</pre>
+                        </div>
+                    `;
+                }
+                
+                if (data.memory_thinking) {
+                    thinkingHTML += `
+                        <div class="thinking-box">
+                            <h4>个人记忆归纳推理</h4>
+                            <pre style="white-space: pre-wrap; word-wrap: break-word; margin: 0;">${data.memory_thinking}</pre>
+                        </div>
+                    `;
+                }
+                
+                if (data.llm_thinking) {
+                    thinkingHTML += `
+                        <div class="thinking-box">
+                            <h4>LLM模型推理过程</h4>
+                            <pre style="white-space: pre-wrap; word-wrap: break-word; margin: 0;">${data.llm_thinking}</pre>
+                        </div>
+                    `;
+                }
+                
+                if (thinkingHTML) {
+                    thinkingContent.innerHTML = thinkingHTML;
+                    thinkingSection.style.display = 'block';
+                } else {
+                    thinkingSection.style.display = 'none';
+                }
+            }
+
+            // 显示最终回答
+            const answerSection = document.getElementById('answer_section');
+            const answerContent = document.getElementById('answer_content');
+            if (answerSection && answerContent) {
+                if (data.answer) {
+                    answerContent.textContent = data.answer;
+                    answerSection.style.display = 'block';
+                } else {
+                    answerSection.style.display = 'none';
+                }
+            }
+
+            // 滚动到结果区域
+            resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        window.searchWithDescription = function(query, personalDescription, intent, intentExplanation, personalMemory) {
+            // 直接使用个性化描述进行搜索
+            window.performSearchWithDescription(query, personalDescription, intent, intentExplanation, personalMemory);
+        };
+        
+        window.editQueryAndSearch = function(query, personalDescription, intent, intentExplanation, personalMemory) {
+            // 将查询填入搜索框，让用户编辑
+            const searchInput = document.getElementById('search_query');
+            if (searchInput) {
+                searchInput.value = query;
+                searchInput.focus();
+                // 选中文本，方便用户编辑
+                searchInput.select();
+            }
+            
+            // 保存个性化描述到全局变量，等待用户点击搜索
+            window.pendingPersonalDescription = {
+                personal_description: personalDescription,
+                intent: intent,
+                intent_explanation: intentExplanation,
+                personal_memory: personalMemory
+            };
+            
+            alert('已填入查询，您可以编辑后点击"搜索"按钮，系统将使用之前的个性化描述进行搜索。');
+        };
+        
+        window.performSearchWithDescription = async function(query, personalDescription, intent, intentExplanation, personalMemory) {
+            const searchBtn = document.getElementById('search_btn');
+            if (searchBtn) {
+                searchBtn.disabled = true;
+                searchBtn.textContent = '搜索中...';
+            }
+
+            const loadingEl = document.getElementById('loading');
+            if (loadingEl) loadingEl.style.display = 'block';
+            
+            const resultsContainer = document.getElementById('results_container');
+            if (resultsContainer) resultsContainer.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        query: query,
+                        personal_description: personalDescription,
+                        intent: intent,
+                        intent_explanation: intentExplanation,
+                        personal_memory: personalMemory,
+                        selected_memories: window.getSelectedMemories()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResults(result.data);
+                } else {
+                    alert('搜索失败: ' + result.message);
+                    if (loadingEl) loadingEl.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('搜索失败:', error);
+                alert('搜索失败: ' + error.message);
+                if (loadingEl) loadingEl.style.display = 'none';
+            } finally {
+                if (searchBtn) {
+                    searchBtn.disabled = false;
+                    searchBtn.textContent = '搜索';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+

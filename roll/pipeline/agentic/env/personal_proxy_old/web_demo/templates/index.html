@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Proxy - 个性化代理系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="/search" style="color: white; text-decoration: none; float: right; padding: 10px 20px; background: rgba(255,255,255,0.2); border-radius: 6px; margin-left: 20px;">🔍 知识搜索</a>
+            <h1>Personal Proxy - 个性化代理系统</h1>
+            <p class="subtitle">基于意图理解和个人记忆的个性化知识搜索助手</p>
+        </header>
+
+        <div class="main-content">
+            <!-- 左侧：个人属性和偏好 -->
+            <div class="left-panel">
+                <!-- 个人事实 -->
+                <section class="card">
+                    <div class="card-header">
+                        <h2>个人事实（长期）</h2>
+                        <button class="btn btn-small" onclick="generateRandomFacts()">随机生成</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>年龄：</label>
+                            <input type="text" id="age" placeholder="例如：26-30">
+                        </div>
+                        <div class="form-group">
+                            <label>性别：</label>
+                            <select id="gender">
+                                <option value="">请选择</option>
+                                <option value="男">男</option>
+                                <option value="女">女</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>就业状态：</label>
+                            <select id="employment_status">
+                                <option value="">请选择</option>
+                                <option value="在校学生">在校学生</option>
+                                <option value="在职">在职</option>
+                                <option value="待业">待业</option>
+                                <option value="自由职业">自由职业</option>
+                                <option value="退休">退休</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>教育水平：</label>
+                            <select id="education_level">
+                                <option value="">请选择</option>
+                                <option value="高中">高中</option>
+                                <option value="大专">大专</option>
+                                <option value="本科">本科</option>
+                                <option value="硕士">硕士</option>
+                                <option value="博士">博士</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>居住区域：</label>
+                            <input type="text" id="residence_area" placeholder="例如：北京">
+                        </div>
+                        <button class="btn btn-primary" onclick="savePersonalFacts()">保存个人事实</button>
+                    </div>
+                </section>
+
+                <!-- 个人偏好 -->
+                <section class="card">
+                    <div class="card-header">
+                        <h2>个人偏好（短期）</h2>
+                        <button class="btn btn-small" onclick="generateRandomPreferences()">随机生成</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="like_long_text">
+                                喜欢阅读长文本
+                            </label>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="like_outline_navigation">
+                                喜欢大纲导览
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" onclick="savePersonalPreferences()">保存个人偏好</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 中间：知识搜索场景 -->
+            <div class="center-panel">
+                <section class="card">
+                    <div class="card-header">
+                        <h2>知识搜索场景</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>选择或输入搜索场景：</label>
+                            <select id="scenario_select" onchange="selectScenario()">
+                                <option value="">请选择场景</option>
+                            </select>
+                            <input type="text" id="custom_scenario" placeholder="或输入自定义场景">
+                        </div>
+                        <button class="btn btn-primary btn-large" onclick="generateDescription()">
+                            生成个性化描述
+                        </button>
+                        
+                        <div id="description_result" class="result-box" style="display: none;">
+                            <h3>生成结果</h3>
+                            <div class="result-item">
+                                <strong>当前情景：</strong>
+                                <span id="result_context"></span>
+                            </div>
+                            <div class="result-item">
+                                <strong>用户意图：</strong>
+                                <span id="result_intent"></span>
+                            </div>
+                            <div class="result-item">
+                                <strong>意图解释：</strong>
+                                <span id="result_intent_explanation"></span>
+                            </div>
+                            <div class="result-item">
+                                <strong>个人记忆：</strong>
+                                <pre id="result_personal_memory"></pre>
+                            </div>
+                            <div class="result-item">
+                                <strong>个性化描述：</strong>
+                                <pre id="result_personal_description"></pre>
+                            </div>
+                            <div class="result-item score-item">
+                                <strong>质量评分：</strong>
+                                <span class="score" id="result_score"></span>
+                            </div>
+                            <div class="result-item">
+                                <strong>评分理由：</strong>
+                                <p id="result_score_reason"></p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 右侧：意图判断历史 -->
+            <div class="right-panel">
+                <section class="card">
+                    <div class="card-header">
+                        <h2>意图判断历史</h2>
+                        <button class="btn btn-small" onclick="generateRandomHistory()">随机生成</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="intent_history_list"></div>
+                        <button class="btn btn-primary" onclick="showAddIntentForm()">添加新意图</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑意图模态框 -->
+    <div id="intent_modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal_title">添加意图判断</h2>
+                <span class="close" onclick="closeIntentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>当前情景：</label>
+                    <input type="text" id="modal_context" placeholder="例如：查询上海旅游规划">
+                </div>
+                <div class="form-group">
+                    <label>用户：</label>
+                    <input type="text" id="modal_user" value="当前用户">
+                </div>
+                <div class="form-group">
+                    <label>意图：</label>
+                    <input type="text" id="modal_intent" placeholder="例如：获取详细的旅游攻略">
+                </div>
+                <div class="form-group">
+                    <label>意图解释：</label>
+                    <textarea id="modal_intent_explanation" rows="3" placeholder="详细说明为什么会有这个意图"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>用户反馈：</label>
+                    <textarea id="modal_user_feedback" rows="2" placeholder="用户对意图判断的反馈（可选）"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" onclick="saveIntent()">保存</button>
+                    <button class="btn btn-secondary" onclick="closeIntentModal()">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+

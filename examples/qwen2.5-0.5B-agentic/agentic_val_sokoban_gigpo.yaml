@@ -17,6 +17,7 @@ output_dir: ./output
 render_save_dir: ./output/render
 system_envs:
   USE_MODELSCOPE: '1'
+  CUDA_VISIBLE_DEVICES: "0, 2"  # 全局默认，训练和推理会各自设置：训练用卡0，推理用卡2
 
 #track_with: wandb
 #tracker_kwargs:
@@ -31,22 +32,22 @@ system_envs:
 
 track_with: tensorboard
 tracker_kwargs:
-  log_dir: /data/oss_bucket_0/yali/llm/tensorboard/roll_exp/agentic_sokoban
+  log_dir: /home/liuguanming/Multimodal-Agent/roll_MInt/ROLL/examples/qwen2.5-0.5B-agentic/log_1108
 
 checkpoint_config:
   type: file_system
-  output_dir: /data/cpfs_0/rl_examples/models/${exp_name}
+  output_dir: /home/liuguanming/Multimodal-Agent/roll_MInt/ROLL/examples/qwen2.5-0.5B-agentic_val/models/${exp_name}
 
-num_gpus_per_node: 8
+num_gpus_per_node: 1  # 单卡运行
 
-max_steps: 10240
+max_steps: 512
 save_steps: 10000
 logging_steps: 1
 eval_steps: 10
 resume_from_checkpoint: false
 
-rollout_batch_size: 1024
-val_batch_size: 1024
+rollout_batch_size: 256  # 提高并发以增加vLLM占用
+val_batch_size: 256
 sequence_length: 1024
 
 advantage_clip: 20
@@ -80,15 +81,15 @@ actor_train:
   training_args:
     learning_rate: 1.0e-6
     weight_decay: 0
-    per_device_train_batch_size: 16
+    per_device_train_batch_size: 32 
     gradient_accumulation_steps: 8
     warmup_steps: 100
     lr_scheduler_type: cosine
   data_args:
     template: qwen2_5
   strategy_args:
-#    strategy_name: deepspeed_train
-#    strategy_config: ${deepspeed_zero3}
+  # strategy_name: deepspeed_train
+  # strategy_config: ${deepspeed_zero3}
     strategy_name: megatron_train
     strategy_config:
       tensor_model_parallel_size: 1
@@ -96,7 +97,9 @@ actor_train:
       expert_model_parallel_size: 1
       use_distributed_optimizer: true
       recompute_granularity: full
-  device_mapping: list(range(0,8))
+  device_mapping: "[0]"
+  system_envs:
+    CUDA_VISIBLE_DEVICES: "2"
   infer_batch_size: 16
 
 actor_infer:
@@ -115,10 +118,15 @@ actor_infer:
   strategy_args:
     strategy_name: vllm
     strategy_config:
-      gpu_memory_utilization: 0.8
+      gpu_memory_utilization: 0.6
       block_size: 16
       load_format: auto
-  device_mapping: list(range(0,8))
+      max_model_len: 1024
+    # strategy_name: hf_infer
+    # strategy_config: ~
+  device_mapping: "[0]"  # 在CUDA_VISIBLE_DEVICES=2的情况下，这里的[0]对应物理GPU 2
+  system_envs:
+    CUDA_VISIBLE_DEVICES: "0"
 
 reference:
   model_args:
@@ -131,7 +139,9 @@ reference:
   strategy_args:
     strategy_name: hf_infer
     strategy_config: ~
-  device_mapping: list(range(0,8))
+  device_mapping: "[0]"  # 在CUDA_VISIBLE_DEVICES=2的情况下，这里的[0]对应物理GPU 2
+  system_envs:
+    CUDA_VISIBLE_DEVICES: "2"
   infer_batch_size: 16
 
 reward_normalization:
@@ -140,19 +150,19 @@ reward_normalization:
 
 train_env_manager:
   format_penalty: -0.15 # sokoban env penalty_for_step=-0.1
-  max_env_num_per_worker: 16
-  num_env_groups: 128
+  max_env_num_per_worker: 4 # 单卡降低环境数量
+  num_env_groups: 8  # 单卡降低组数
   # under the same group, the env config and env seed are ensured to be equal
   group_size: 8
   tags: [SimpleSokoban]
-  num_groups_partition: [128] # If not set, all env names divide nums equally. Under the same group, the env config and env seed (prompt) are equal in each generation
+  num_groups_partition: [8] # 必须等于num_env_groups的总和
 
 val_env_manager:
-  max_env_num_per_worker: 32
-  num_env_groups: 1024
+  max_env_num_per_worker: 8  # 单卡降低环境数量
+  num_env_groups: 64  # 单卡大幅降低组数
   group_size: 1 # should be set to 1 because val temperature is set to 0 and same prompt leads to same output
   tags: [SimpleSokoban, LargerSokoban, SokobanDifferentGridVocab, FrozenLake]
-  num_groups_partition: [256, 256, 256, 256] # TODO: If not set, all env names divide nums equally. Under the same group, the env config and env seed (prompt) are equal in each generation
+  num_groups_partition: [16, 16, 16, 16] # 单卡降低分区数
 
 
 # Here, you can override variables defined in the imported envs. max_tokens_per_step: 128 in custom_env.SimpleSokoban, here replaced by 64

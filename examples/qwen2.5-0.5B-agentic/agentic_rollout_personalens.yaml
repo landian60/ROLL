@@ -10,7 +10,7 @@ hydra:
     dir: .
   output_subdir: null
 
-exp_name: "agentic_pipeline"
+exp_name: "agentic_pipeline_personalens"
 seed: 42
 logging_dir: ./output/logs
 output_dir: ./output
@@ -20,12 +20,12 @@ render_save_dir: ./output/render
 #tracker_kwargs:
 #  api_key:
 #  project: roll-agentic
-#  name: ${exp_name}_sokoban
+#  name: ${exp_name}_personalens
 #  notes: "agentic_pipeline"
 #  tags:
 #    - agentic
 #    - roll
-#    - baseline
+#    - personalens
 
 track_with: tensorboard
 tracker_kwargs:
@@ -46,7 +46,7 @@ actor_infer:
     disable_gradient_checkpointing: true
     dtype: bf16
   generating_args:
-    max_new_tokens: 128 # single-turn response length
+    max_new_tokens: 256 # single-turn response length (longer for conversation)
     top_p: 0.99
     top_k: 100
     num_beams: 1
@@ -57,33 +57,23 @@ actor_infer:
   strategy_args:
     strategy_name: vllm
     strategy_config:
-      gpu_memory_utilization: 0.6
+      gpu_memory_utilization: 0.8
       block_size: 16
       load_format: auto # should set 'auto' here, because default load_format is 'dummy'
-  device_mapping: "[0]"  # Ray可见GPU索引（即使Ray看到所有GPU，也会通过system_envs强制使用GPU 1）
-  system_envs:
-    CUDA_VISIBLE_DEVICES: "1"  # 强制worker只能看到物理GPU 1，覆盖自动设置的CUDA_VISIBLE_DEVICES=0
+  device_mapping: "[0]"
 
 train_env_manager:
-  format_penalty: -0.15 # sokoban env penalty_for_step=-0.1
+  format_penalty: -0.1 # personalens env format penalty
   max_env_num_per_worker: 1
   num_env_groups: 1
   # under the same group, the env config and env seed are ensured to be equal
   group_size: 1
-  tags: [SimpleSokoban]
+  tags: [PersonaLens]
   num_groups_partition: [1] # If not set, all env names divide nums equally. Under the same group, the env config and env seed (prompt) are equal in each generation
 
-# Here, you can override variables defined in the imported envs. max_tokens_per_step: 128 in custom_env.SimpleSokoban, here replaced by 64
-max_tokens_per_step: 64
+# Here, you can override variables defined in the imported envs. max_tokens_per_step: 128 in custom_env.PersonaLens, here replaced by 128
+max_tokens_per_step: 128
 
 custom_envs:
-  SimpleSokoban:
-    ${custom_env.SimpleSokoban}
-  LargerSokoban:
-    ${custom_env.LargerSokoban}
-  SokobanDifferentGridVocab:
-    ${custom_env.SokobanDifferentGridVocab}
-  FrozenLake:
-    ${custom_env.FrozenLake}
-  FrozenLakeThink:
-    ${custom_env.FrozenLakeThink}
+  PersonaLens:
+    ${custom_env.PersonaLens}

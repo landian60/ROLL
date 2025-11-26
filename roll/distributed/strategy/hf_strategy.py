@@ -152,7 +152,7 @@ class HfInferStrategy(InferenceStrategy):
         collective.broadcast(tensor=weight, src_rank=0, group_name=comm_plan["group_name"])
         self.update_parameter(model_update_name, parameter_name, weight, [dist.get_rank()])
 
-    def update_parameter(self, model_update_name, parameter_name, weight, ranks_in_worker):
+    def update_parameter(self, model_update_name, parameter_name, weight, ranks_in_worker, is_lora: bool = False):
         if dist.get_rank() not in ranks_in_worker:
             return
         param = self.model.get_parameter(parameter_name)

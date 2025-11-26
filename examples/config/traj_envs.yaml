@@ -94,6 +94,28 @@ custom_env:
       observation_mode: text
       max_steps: ${max_actions_per_traj}
       format_penalty: -0.05
+  PersonaLens:
+    env_type: personalens
+    max_steps: ${max_actions_per_traj}
+    max_tokens_per_step: ${max_tokens_per_step}
+    env_manager_cls: ${env_manager_cls}
+    use_thread_lock: true
+    agent_system_template: ${agent_system_template}
+    agent_template: ${agent_template}
+    env_config:
+      data_dir: /home/liuguanming/Multimodal-Agent/roll_MInt/PersonaLens-main/data
+      max_steps: ${max_actions_per_traj}
+      format_penalty: -0.1
+      include_demographic: true
+      include_past_interaction: true
+      include_situation: true
+      # LLM Judge configuration (optional - if not provided, uses keyword matching)
+      # use_llm_judge: false
+      # judge_llm_config:
+      #   api_key: "your-api-key-here"
+      #   base_url: "https://api.openai.com/v1"
+      #   model_name: "gpt-4"
+      #   timeout: 60
 
 agent_system_template: You're a helpful assistant. You are a good game player. You are aiming to get high reward in the game.
 agent_template: |
